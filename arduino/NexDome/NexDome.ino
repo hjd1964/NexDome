@@ -80,7 +80,7 @@
 #define SERIAL_TX 9
 #define SERIAL_RX 8
 
-//  HJD OCS --->  Defaults pins here, none are used for my observatory control system
+//  HJD OCS --->  Default pins here, none are used for my observatory control system
 //  Enable line for the stepper driver
 #define EN 10
 //  Direction line for the stepper driver
@@ -109,9 +109,10 @@
 //  if we define our serial ports this way, then re-compiling for different port assignments
 //  on different processors, becomes easy and we dont have to hunt all over chaning
 //  code to reference different serial definitions
-//  HJD OCS --->  for Mega2560 use Serial1 and Serial2 since they're not used by my observatory control system
+//  HJD OCS --->  for Mega2560 choose Serial1 and Serial2 since they're not used by my observatory control system
 #define Computer Serial1
 #define Wireless Serial2
+#define Debug Serial1
 
 #define SHUTTER_STATE_NOT_CONNECTED 0
 #define SHUTTER_STATE_OPEN 1
@@ -267,7 +268,7 @@ bool NexDome::ReadConfig()
   }
   */
   if(cfg.signature != SIGNATURE) {
-    //Computer.write("Invalid eeprom data");
+    //Debug.write("Invalid eeprom data");
     return false;
   }
   SetStepsPerDomeTurn(cfg.StepsPerDomeTurn);
@@ -277,13 +278,13 @@ bool NexDome::ReadConfig()
 
   if(DomeIsReversed) accelStepper.setPinsInverted(false,false,false);
 
-  //Computer.print("Steps per turn from eeprom is ");
-  //Computer.print(cfg.StepsPerDomeTurn);
-  //Computer.println("");
-  //Computer.println(HomeAzimuth);
-  //Computer.println(ParkAzimuth);
-  //Computer.print("Reversed ");
-  //Computer.println(DomeIsReversed);
+  //Debug.print("Steps per turn from eeprom is ");
+  //Debug.print(cfg.StepsPerDomeTurn);
+  //Debug.println("");
+  //Debug.println(HomeAzimuth);
+  //Debug.println(ParkAzimuth);
+  //Debug.print("Reversed ");
+  //Debug.println(DomeIsReversed);
   return true;
 }
 
@@ -291,14 +292,14 @@ int NexDome::SetStepsPerDomeTurn(long int steps)
 {
   long int StepsPerSecond;
 
-  //Computer.println("Setting steps per turn to ");
-  //Computer.println(steps);
+  //Debug.println("Setting steps per turn to ");
+  //Debug.println(steps);
   
   StepsPerDomeTurn=steps;
   StepsPerSecond=StepsPerDomeTurn/DOME_TURN_TIME;
   if(StepsPerSecond < 2000) StepsPerSecond=2000;
-  //Computer.print(StepsPerSecond);
-  //Computer.println(" Steps per second");
+  //Debug.print(StepsPerSecond);
+  //Debug.println(" Steps per second");
   accelStepper.setMaxSpeed(StepsPerSecond);
   //  Set a ramp time
   accelStepper.setAcceleration(StepsPerSecond*2);
@@ -308,8 +309,8 @@ int NexDome::SetStepsPerDomeTurn(long int steps)
 
 void NexDome::EnableMotor()
 {
-  //Computer.print("Enable at ");
-  //Computer.println(CurrentPosition());
+  //Debug.print("Enable at ");
+  //Debug.println(CurrentPosition());
   digitalWrite(EN,LOW);
   delay(100);
   Active=true;  
@@ -323,7 +324,7 @@ void NexDome::DisableMotor()
   //digitalWrite(STP,LOW);
   
   Active=false;
-  //Computer.println("Stopped");
+  //Debug.println("Stopped");
 }
 
 bool NexDome::Run()
@@ -382,13 +383,13 @@ void NexDome::MoveTo(long int p)
 {
   long int current;
   current=accelStepper.currentPosition();
-  //Computer.println(current);
-  //Computer.println(p);
+  //Debug.println(current);
+  //Debug.println(p);
   if(p > current) {
-    //Computer.println("Set sense rising");
+    //Debug.println("Set sense rising");
     SenseRising=true;
   } else {
-    //Computer.println("Set sense falling");
+    //Debug.println("Set sense falling");
     SenseRising=false;
   }
 
@@ -420,8 +421,8 @@ float NexDome::GetHeading()
    */
   
   float Heading;
-  //Computer.print("Current ");
-  //Computer.println(CurrentPosition());
+  //Debug.print("Current ");
+  //Debug.println(CurrentPosition());
   Heading=(float)CurrentPosition()/(float)StepsPerDomeTurn*360;
   //  in case we need to do another step
   //  do a run sequence now
@@ -434,14 +435,14 @@ float NexDome::GetHeading()
 /*
   long int h;
 
-  //Computer.println(StepsPerDomeTurn);
+  //Debug.println(StepsPerDomeTurn);
   h=CurrentPosition();
-  //Computer.println(h);
+  //Debug.println(h);
   h=h*360+StepsPerDomeTurn/2;
   //  fix for rounding issues
   //h=h+StepsPerDomeTurn/2;
   h=h/StepsPerDomeTurn;
-  //Computer.println(h);
+  //Debug.println(h);
   while(h < 0) h+=360;
   while(h >= 360) h-=360;
   return (int) h;
@@ -481,22 +482,22 @@ int NexDome::SetHeading(float h)
   }
 
 /*
-  Computer.print("heading now ");
-  Computer.println(current);
-  Computer.print("desired heading ");
-  Computer.println(h);
-  Computer.print("delta is ");
-  Computer.println(delta);
-  Computer.print("new target is ");
-  Computer.println(target);
+  Debug.print("heading now ");
+  Debug.println(current);
+  Debug.print("desired heading ");
+  Debug.println(h);
+  Debug.print("delta is ");
+  Debug.println(delta);
+  Debug.print("new target is ");
+  Debug.println(target);
 */
 
   /*
   target=h/360.0*StepsPerDomeTurn;
   */
   TargetSteps=target/360*StepsPerDomeTurn;
-  //Computer.println(CurrentPosition());
-  //Computer.println(TargetSteps);
+  //Debug.println(CurrentPosition());
+  //Debug.println(TargetSteps);
 
   //  now round to even steps, not microsteps
   r=TargetSteps%STEP_TYPE;
@@ -511,11 +512,11 @@ int NexDome::Sync(float val)
   long int newaz;
 
   newaz=AzimuthToTicks(val);
-  //Computer.print("Setting new tick count ");
-  //Computer.print(newaz);
+  //Debug.print("Setting new tick count ");
+  //Debug.print(newaz);
   accelStepper.setCurrentPosition(newaz);
-  //Computer.print("sync with ");
-  //Computer.println(val);
+  //Debug.print("sync with ");
+  //Debug.println(val);
   return 0;
 }
 
@@ -527,21 +528,21 @@ int NexDome::AtHome()
   LastHomeCount=CurrentPosition();
   r=LastHomeCount%STEP_TYPE;
   LastHomeCount=LastHomeCount-r;
-  //Computer.print("Home sensor detected at ");
-  //Computer.print(LastHomeCount);
-  //Computer.print(" ");
-  //Computer.println(GetHeading());
+  //Debug.print("Home sensor detected at ");
+  //Debug.print(LastHomeCount);
+  //Debug.print(" ");
+  //Debug.println(GetHeading());
   if(FindingHome) {
     if(Calibrating) {
       //  we often get a second hit on the other edge
       //  when we were stopped within the magnet range
       //  if calibrating, ignore a hit that comes to quickly
       if(LastHomeCount < 5000) {
-        //Computer.println("Ignore spurios home hit while calibrating");
+        //Debug.println("Ignore spurios home hit while calibrating");
         return 0;
       }
-      //Computer.print("T ");
-      //Computer.println(LastHomeCount);
+      //Debug.print("T ");
+      //Debug.println(LastHomeCount);
       //StepsPerDomeTurn=LastHomeCount;
       SetStepsPerDomeTurn(LastHomeCount);
       SaveConfig(); //  store this new value into the eeprom
@@ -591,9 +592,9 @@ void HomeInterrupt()
     if(a==0) HomeSensor=true;
   }
   //if(a==0) {
-    //Computer.println("Home Sensor");
-    //Computer.println(a);
-    //Computer.println("Home");
+    //Debug.println("Home Sensor");
+    //Debug.println(a);
+    //Debug.println("Home");
     //HomeSensor=true;
   //}
 }
@@ -606,8 +607,8 @@ void OtherInterrupt()
   a=digitalRead(HOME);
   b=digitalRead(HOME);
   if(a==b) {
-    //Computer.print("Home Sensor");
-    //Computer.println(a);
+    //Debug.print("Home Sensor");
+    //Debug.println(a);
     Computer.println("Other");
     HomeSensor=true;
   }
@@ -650,20 +651,21 @@ void setup() {
   
   Computer.begin(9600);
   Wireless.begin(9600);
+  //Debug.begin(9600);
 
   //  hack for development, we want it to wait now for the serial port to be connected
-  //  so we see the output in the monitor during inti
+  //  so we see the output in the monitor during init
   //while(!Serial) {
   //}
-  //Computer.println("Starting NexDome"); 
+  //Debug.println("Starting NexDome"); 
 
   MotorTurnsPerDomeTurn = (float)DOME_TEETH / (float) GEAR_TEETH;
   StepsPerGearTurn=200.0*(float)REDUCTION_GEAR*(float)STEP_TYPE;
   StepsPerDomeTurn=MotorTurnsPerDomeTurn*StepsPerGearTurn;
   StepsPerDegree=StepsPerDomeTurn/360;
 
-  //Computer.print(StepsPerDomeTurn);
-  //Computer.println(" Calculated steps per turn");
+  //Debug.print(StepsPerDomeTurn);
+  //Debug.println(" Calculated steps per turn");
   
   Dome.EnableMotor();
   Dome.DisableMotor();
@@ -671,10 +673,10 @@ void setup() {
 
   Dome.ReadConfig();
 
-  //Computer.print(Dome.StepsPerDomeTurn);
-  //Computer.println(" steps per dome turn");
-  //Computer.print(StepsPerDegree);
-  //Computer.println(" steps per degree");
+  //Debug.print(Dome.StepsPerDomeTurn);
+  //Debug.println(" steps per dome turn");
+  //Debug.print(StepsPerDegree);
+  //Debug.println(" steps per degree");
   
   ShutterQueryTime=SHUTTER_SLEEP_WAIT;
   ConfigureWireless();
@@ -709,13 +711,13 @@ int CheckButtons()
  
   int bw,be;
   int buttonstate;
-  //Serial.println(accelStepper.currentPosition());
+  //Debug.println(accelStepper.currentPosition());
   //  First we check buttons for any button state
   bw=digitalRead(BUTTON_WEST);
   be=digitalRead(BUTTON_EAST);
   buttonstate=bw+(be<<1);
   buttonstate=buttonstate ^ 0x03;
-  //Serial.println(buttonstate);
+  //Debug.println(buttonstate);
   return buttonstate;
 }
 
@@ -784,7 +786,7 @@ void ProcessSerialCommand()
   /* is dome in motion */
   if(SerialBuffer[0]=='m') {
     int state=0;
-    //Computer.write("M ");
+    //Debug.write("M ");
     //  if dome is in motion, figure out what kind of motion
     if(Dome.Active) {
       Dome.Run();
@@ -795,24 +797,24 @@ void ProcessSerialCommand()
     }
     sprintf(buf,"M %d\n",state);
     Computer.write(buf);
-    //Computer.write("\n");
-    //Computer.println(state);
+    //Debug.write("\n");
+    //Debug.println(state);
     SerialPointer=0;
     return;
 
   }
   /* query current heading */
   if(SerialBuffer[0]=='q') {
-    //Computer.print("H ");
-    //Computer.println(Dome.GetHeading());
+    //Debug.print("H ");
+    //Debug.println(Dome.GetHeading());
     dtostrf(Dome.GetHeading(),2,1,buf);
     if(Dome.Active) Dome.Run();
     ////sprintf(buf,"H %s\n",b);
     Computer.write("Q ");
     Computer.write(buf);
     Computer.write("\n");
-    //Computer.print("Q ");
-    //Computer.println(Dome.GetHeading());
+    //Debug.print("Q ");
+    //Debug.println(Dome.GetHeading());
     SerialPointer=0;
     return;
   }
@@ -836,36 +838,36 @@ void ProcessSerialCommand()
    }
    /*  Open Shutter  */
    if(SerialBuffer[0]=='d') {
-    Computer.println("D");
-    //  tell the shutter to open
-    Wireless.println("o");
-    //  set shutter state to opening, and it'll get set to whatever the shutter
-    //  is really doing on the next shutter status report
-    if(ShutterState != SHUTTER_STATE_NOT_CONNECTED) ShutterState=SHUTTER_STATE_OPENING;
-    //  now query status
-    //delay(300);
-    //Wireless.println("s");
+     Computer.println("D");
+     //  tell the shutter to open
+     Wireless.println("o");
+     //  set shutter state to opening, and it'll get set to whatever the shutter
+     //  is really doing on the next shutter status report
+     if(ShutterState != SHUTTER_STATE_NOT_CONNECTED) ShutterState=SHUTTER_STATE_OPENING;
+     //  now query status
+     //delay(300);
+     //Wireless.println("s");
      //ShutterQueryTime=SHUTTER_AWAKE_WAIT;
    }
    /*  Close Shutter  */
    if(SerialBuffer[0]=='e') {
-    Computer.println("D");
-    Wireless.println("c");
-    //  set the state to closing
-    //  and the next time shutter responds, it'll get set to shutter condition again
-    if(ShutterState != SHUTTER_STATE_NOT_CONNECTED) ShutterState=SHUTTER_STATE_CLOSING;
-    SerialTarget=true;
+     Computer.println("D");
+     Wireless.println("c");
+     //  set the state to closing
+     //  and the next time shutter responds, it'll get set to shutter condition again
+     if(ShutterState != SHUTTER_STATE_NOT_CONNECTED) ShutterState=SHUTTER_STATE_CLOSING;
+     SerialTarget=true;
    }
     /*  Set Shutter Position */
    if(SerialBuffer[0]=='f') {
-    float tt;
+     float tt;
     
-    Computer.println("F");
-    tt=atof(&SerialBuffer[1]);
-    Wireless.print("f ");
-    Wireless.println(tt);
-    //delay(300);
-    //Wireless.println("s");
+     Computer.println("F");
+     tt=atof(&SerialBuffer[1]);
+     Wireless.print("f ");
+     Wireless.println(tt);
+     //delay(300);
+     //Wireless.println("s");
      //ShutterQueryTime=SHUTTER_AWAKE_WAIT;
    }
  
@@ -899,7 +901,7 @@ void ProcessSerialCommand()
       Dome.HomeAzimuth=newhome;
       Dome.SaveConfig();
     } else {
-      //Computer.println("Dome has not been home");
+      //Debug.println("Dome has not been home");
     }
     if((h >=0)&&(h<360)) {
        Computer.print("S ");
@@ -920,18 +922,18 @@ void ProcessSerialCommand()
   if(SerialBuffer[0]=='t') {
     Computer.print("T ");
     Computer.println(Dome.StepsPerDomeTurn);
-    //Computer.println(" Steps per Dome turn");
-    //Computer.println(Dome.HomeAzimuth);
-    //Computer.println(" Home Azimuth");
+    //Debug.println(" Steps per Dome turn");
+    //Debug.println(Dome.HomeAzimuth);
+    //Debug.println(" Home Azimuth");
     
   }
   /* query for home azimuth */
   if(SerialBuffer[0]=='i') {
     Computer.print("I ");
     Computer.println(Dome.HomeAzimuth);
-    //Computer.println(" Steps per Dome turn");
-    //Computer.println(Dome.HomeAzimuth);
-    //Computer.println(" Home Azimuth");
+    //Debug.println(" Steps per Dome turn");
+    //Debug.println(Dome.HomeAzimuth);
+    //Debug.println(" Home Azimuth");
     
   }
   /* Set the home azimuth */
@@ -946,18 +948,18 @@ void ProcessSerialCommand()
     Computer.print("I ");
     Computer.println(Dome.HomeAzimuth);
     Dome.SaveConfig();
-    //Computer.println(" Steps per Dome turn");
-    //Computer.println(Dome.HomeAzimuth);
-    //Computer.println(" Home Azimuth");
+    //Debug.println(" Steps per Dome turn");
+    //Debug.println(Dome.HomeAzimuth);
+    //Debug.println(" Home Azimuth");
     
   }
   /* query for park azimuth */
   if(SerialBuffer[0]=='n') {
     Computer.print("N ");
     Computer.println(Dome.ParkAzimuth);
-    //Computer.println(" Steps per Dome turn");
-    //Computer.println(Dome.HomeAzimuth);
-    //Computer.println(" Home Azimuth");
+    //Debug.println(" Steps per Dome turn");
+    //Debug.println(Dome.HomeAzimuth);
+    //Debug.println(" Home Azimuth");
     
   }
   /* Set the park azimuth */
@@ -969,9 +971,9 @@ void ProcessSerialCommand()
     Computer.print("N ");
     Computer.println(Dome.ParkAzimuth);
     Dome.SaveConfig();
-    //Computer.println(" Steps per Dome turn");
-    //Computer.println(Dome.HomeAzimuth);
-    //Computer.println(" Home Azimuth");
+    //Debug.println(" Steps per Dome turn");
+    //Debug.println(Dome.HomeAzimuth);
+    //Debug.println(" Home Azimuth");
   }
   
 /*  goto based on a heading */
@@ -1060,8 +1062,8 @@ void ProcessSerialCommand()
     if(SerialBuffer[1]==' ') {
       unsigned long int newtimer;
       newtimer=atol(&SerialBuffer[1]);
-      //Computer.println("Setting timer to ");
-      //Computer.println(newtimer);
+      //Debug.println("Setting timer to ");
+      //Debug.println(newtimer);
       Wireless.print("h ");
       Wireless.println(newtimer);
       //ShutterHibernateTimer=0;  //  trigger a query to see it stuck
@@ -1127,7 +1129,7 @@ void ConfigureWireless()
 {
   //  do nothing for now
   //return;
-  //Computer.println("Sending + to xbee");
+  //Debug.println("Sending + to xbee");
   delay(1100);
   DoingWirelessConfig=true;
   WirelessConfigState=0;
@@ -1138,7 +1140,7 @@ void ConfigureWireless()
 
 void ProcessShutterData()
 {
-  //Computer.println(WirelessBuffer);
+  //Debug.println(WirelessBuffer);
   if(WirelessBuffer[0]=='O') {
     if(WirelessBuffer[1]=='K') {
       //  The xbee unit is ready for configuration
@@ -1152,23 +1154,23 @@ void ProcessShutterData()
             //  do one setting per OK return
             //Wireless.println("ATID5555,CE1,PL0,SM4,SP5DC,ST100,CN");
             Wireless.println("ATID5555");
-            //Computer.println("Setting wireless id");
+            //Debug.println("Setting wireless id");
             break;
          
           case 1:
             Wireless.println("ATCE1");
-            //Computer.println("Setting cordinator");
+            //Debug.println("Setting cordinator");
             break;
             
          case 2:
             Wireless.println("ATPL0");
-            //Computer.println("Setting Power");
+            //Debug.println("Setting Power");
             break;
             
           case 3:
             Wireless.println("ATSM4");
             //Wireless.println("ATSM0");
-            //Computer.println("Setting sleep mode");
+            //Debug.println("Setting sleep mode");
             break;
           
           case 4:
@@ -1176,29 +1178,29 @@ void ProcessShutterData()
             //  so it defines how long we will hold a message
             //  for the endpoint
             Wireless.println("ATSP5DC");
-            //Computer.println("Setting sleep period");
+            //Debug.println("Setting sleep period");
             break;
             
           case 5:
             Wireless.println("ATST100");
-            //Computer.println("Setting sleep wait time");
+            //Debug.println("Setting sleep wait time");
             break;
              
            case 6:
             Wireless.println("ATCN");
-            //Computer.println("Exit command mode");
+            //Debug.println("Exit command mode");
             break;
             
          default:
             //  Finished configuring, now see if the shutter is alive
             Wireless.println("s");
-            //Computer.println("Wireless config finished");
+            //Debug.println("Wireless config finished");
             DoingWirelessConfig=false;
             break;
         }
         WirelessConfigState++;
       }
-      //Computer.println("Clear wireless buffer");
+      //Debug.println("Clear wireless buffer");
       memset(WirelessBuffer,0,MY_SERIAL_BUFFER_SIZE);
       WirelessPointer=0;
       return;
@@ -1207,8 +1209,8 @@ void ProcessShutterData()
   // update our timer for the keep alive routines
   if(!ShutterAlive) {
     if(WirelessBuffer[0]=='S') {
-      //Computer.println(WirelessBuffer);
-      //Computer.println("Shutter woke up");
+      //Debug.println(WirelessBuffer);
+      //Debug.println("Shutter woke up");
       ShutterAlive=true;
     }
   }
@@ -1245,8 +1247,8 @@ void ProcessShutterData()
       }
       if(newShutterState != ShutterState) {
         ShutterState=newShutterState;
-        //Computer.print("Shutter State ");
-        //Computer.println(ShutterState);
+        //Debug.print("Shutter State ");
+        //Debug.println(ShutterState);
       }
       //  shutter has responded with a status
       //  lets ask it for a position
@@ -1254,8 +1256,8 @@ void ProcessShutterData()
     }
     if(WirelessBuffer[0]=='P') {
       ShutterPosition=atof(&WirelessBuffer[1]);
-      //Computer.println("Shutter Position ");
-      //Computer.println(q);
+      //Debug.println("Shutter Position ");
+      //Debug.println(q);
       //  We got a position
       //  lets ask for battery voltage
       Wireless.println("b");
@@ -1275,15 +1277,15 @@ void ProcessShutterData()
       if(ShutterVersion[0]==0) {
         //  if we dont have a version for the shutter
         //  fetch it now
-        //Computer.println("Fetch Shutter Version");
+        //Debug.println("Fetch Shutter Version");
         Wireless.println("v");
       }
      }
     if(WirelessBuffer[0]=='V') {
-      //Computer.print("Shutter Version ");
-      //Computer.println(WirelessBuffer);
+      //Debug.print("Shutter Version ");
+      //Debug.println(WirelessBuffer);
       memcpy(ShutterVersion,&WirelessBuffer[12],4);
-      //Computer.println(ShutterVersion);
+      //Debug.println(ShutterVersion);
     }
     if(WirelessBuffer[0]=='H') {
       if(WirelessBuffer[1]==' ') {
@@ -1301,11 +1303,11 @@ void ProcessShutterData()
 
 void IncomingWirelessChar(char a)
 {
-  //Computer.print(a);
+  //Debug.print(a);
   if((a=='\n')||(a=='\r')) {
     return ProcessShutterData();
   }
-  //Computer.println((int)a);
+  //Debug.println((int)a);
   WirelessBuffer[WirelessPointer]=a;
   WirelessPointer++;
   if(WirelessPointer==MY_SERIAL_BUFFER_SIZE) {
@@ -1319,7 +1321,7 @@ void IncomingWirelessChar(char a)
     WirelessPointer=0;
     WirelessBuffer[0]=0;
   }
-  //Computer.print(a);
+  //Debug.print(a);
   return;
 }
 
@@ -1330,12 +1332,12 @@ int CheckBattery()
   int volts;
 
   volts=analogRead(VPIN);
-  //Computer.println(volts);
+  //Debug.println(volts);
   volts=volts/2;
   volts=volts*3;
   //v=(float)volts/(float)100;
   BatteryVolts=volts;
-  //Computer.println(volts);
+  //Debug.println(volts);
   return 0;  
 }
 
@@ -1349,8 +1351,8 @@ void loop() {
   if(HomeSensor) {
     float h;
     //Dome.AtHome();
-    //Computer.print("AtHome ");
-    //Computer.println(Dome.GetHeading());
+    //Debug.print("AtHome ");
+    //Debug.println(Dome.GetHeading());
 
     //  we should re-sync on this sensor detect
     //  but just calling sync when it's in motion messes up all the
@@ -1410,15 +1412,15 @@ void loop() {
 
   if(Dome.Active)
   {
-    //Computer.println("r");
+    //Debug.println("r");
     Dome.Run();
   } else {
     //  When the dome is not moving
     if((HeadingError > 1.0) || (HeadingError < -1.0)) {
       float pos;
 
-      //Computer.print("Heading correction ");
-      //Computer.println(HeadingError);
+      //Debug.print("Heading correction ");
+      //Debug.println(HeadingError);
       
       pos=Dome.GetHeading();
       pos=pos+HeadingError;
@@ -1426,7 +1428,7 @@ void loop() {
       LastHeadingError=HeadingError;
       HeadingError=0;
     }
-    //Computer.println("s");    
+    //Debug.println("s");    
     //  we need to do a keep alive with the shutter
     //  And confirm it's still alive and running
     //  And we should check on battery voltage once in a while too
@@ -1439,7 +1441,7 @@ void loop() {
         ConfigureWireless();
       } else {
         //  send shutter a status query
-        //Computer.println("Sending shutter status request");
+        //Debug.println("Sending shutter status request");
         Wireless.println("s");
         //Wireless.println(millis());
         //  and get the battery voltage from the shutter
@@ -1455,7 +1457,7 @@ void loop() {
         //  we have been 60 seconds without a response of any type
         //  we have to make sure this timing does not conflict with a keep-alive
         if ((long int)(now-LastShutterKeepAlive) < 5000) {
-          //Computer.println("Waiting on wireless reset");
+          //Debug.println("Waiting on wireless reset");
         } else {
           ShutterAlive=false;
           ShutterVersion[0]=0;
@@ -1479,7 +1481,7 @@ void loop() {
         //  close it
         if((ShutterState != SHUTTER_STATE_CLOSED)&&(ShutterState != SHUTTER_STATE_CLOSING)&&(ShutterState != SHUTTER_STATE_NOT_CONNECTED)) {
           //  we need to close the shutter
-          //Computer.println("Drop dead close shutter");
+          //Debug.println("Drop dead close shutter");
           //  It doesn't hurt to print to the computer at this point
           //  because there are no programs processing anyways
           //  but dont send close commands endlessly either
