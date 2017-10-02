@@ -1452,14 +1452,8 @@ void loop() {
     //CheckBattery();
     //  time now
     now=millis();
-
-
     
-    if(now < LastShutterKeepAlive) {
-    //  the millisecond timer has rolled over
-      LastShutterKeepAlive=now;
-    }
-    if((now - LastShutterKeepAlive) > ShutterQueryTime) {
+    if ((long int)(now - LastShutterKeepAlive) > ShutterQueryTime) {
       CheckBattery();
       if(!FoundXBee) {
         ConfigureWireless();
@@ -1477,11 +1471,10 @@ void loop() {
 
     if(ShutterAlive) {
       //  Now lets see if it has timed out on responses, ie, gone away for some reason
-      if(now < LastShutterResponse) LastShutterResponse=0;    //  deal with rollovers of unsigned
-      if((now - LastShutterResponse) > 60000) {
+      if ((long int)(now - LastShutterResponse) > 60000) {
         //  we have been 60 seconds without a response of any type
         //  we have to make sure this timing does not conflict with a keep-alive
-        if(now-LastShutterKeepAlive < 5000) {
+        if ((long int)(now-LastShutterKeepAlive) < 5000) {
           //Computer.println("Waiting on wireless reset");
         } else {
           ShutterAlive=false;
@@ -1501,7 +1494,7 @@ void loop() {
       //  we are being driven by a computer
       unsigned long int now;
       now=millis();
-      if((now - LastCommandTime) > 120000) {
+      if((long int)(now - LastCommandTime) > 120000) {
         //  we have gone more than 2 minutes with nothing from the host computer
         //  if our shutter is not closed, and not closing, but we are talking to it
         //  close it
