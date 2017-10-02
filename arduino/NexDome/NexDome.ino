@@ -1,6 +1,3 @@
-#include <EEPROM.h>
-
-
 /*
  *  This package includes the drivers and sources for the NexDome
  *  Copyright (C) 2016 Rozeware Development Ltd.
@@ -78,10 +75,12 @@
  *   which we want for our sensors
  *   
  */
+
+// HJD OCS ---> unused
 #define SERIAL_TX 9
 #define SERIAL_RX 8
 
-
+//  HJD OCS --->  Defaults pins here, none are used for my observatory control system
 //  Enable line for the stepper driver
 #define EN 10
 //  Direction line for the stepper driver
@@ -91,7 +90,6 @@
 //  Our two buttons for manual movement
 #define BUTTON_EAST 5
 #define BUTTON_WEST 6
-
 
 //  Physical definitions of the gears
 //  This is the gearbox on the motor
@@ -104,16 +102,16 @@
 // stepper controller
 #define STEP_TYPE 8
 
-
 //  For reading our input voltage 
-#define VPIN A0
+//  HJD OCS --->  default A0 is used on my OCS, choose another pin like A8
+#define VPIN A8
 
 //  if we define our serial ports this way, then re-compiling for different port assignments
 //  on different processors, becomes easy and we dont have to hunt all over chaning
 //  code to reference different serial definitions
-#define Computer Serial
-#define Wireless Serial1
-
+//  HJD OCS --->  for Mega2560 use Serial1 and Serial2 since they're not used by my observatory control system
+#define Computer Serial1
+#define Wireless Serial2
 
 #define SHUTTER_STATE_NOT_CONNECTED 0
 #define SHUTTER_STATE_OPEN 1
@@ -131,7 +129,6 @@
 //  When in alive mode, the timing for each cycle is one second
 //  Query slightly early so the query is waiting when it wakes up
 #define SHUTTER_AWAKE_WAIT 900
-
 
 //  Globals needed
 //  this one is set by the home sensor interrupt routines
@@ -156,6 +153,7 @@ bool DomeIsReversed=false;
 //  The dome class will use an accel stepper object to run the motor
 AccelStepper accelStepper(AccelStepper::DRIVER, STP, DIR);
 
+//  HJD OCS ---> doesn't touch locations from 4 to 99 so this is ok
 #define EEPROM_LOCATION 10
 #define SIGNATURE 1036
 typedef struct DomeConfiguration {
@@ -170,7 +168,6 @@ typedef struct DomeConfiguration {
 //  Functions that need definitions
 void ConfigureWireless();
 void HomeInterrupt();
-
 
 //  Now declare the class for our dome
 class NexDome
@@ -255,14 +252,14 @@ bool NexDome::SaveConfig()
 bool NexDome::ReadConfig()
 {
   dome_config cfg;
-  //unsigned char *pt;
-  //int value;
 
   //  zero the structure so currently unused parts
   //  dont end up loaded with random garbage
   memset(&cfg,0,sizeof(cfg));
   EEPROM.get(EEPROM_LOCATION,cfg);
   /*
+  unsigned char *pt;
+  int value;
   pt=(unsigned char *)&cfg;
   for(int x=0; x<sizeof(dome_config); x++) {
     value=EEPROM.read(EEPROM_LOCATION+x);
@@ -289,7 +286,6 @@ bool NexDome::ReadConfig()
   //Computer.println(DomeIsReversed);
   return true;
 }
-
 
 int NexDome::SetStepsPerDomeTurn(long int steps)
 {
@@ -435,7 +431,6 @@ float NexDome::GetHeading()
   if(Active) Run();
   return Heading;
   
-
 /*
   long int h;
 
@@ -495,8 +490,6 @@ int NexDome::SetHeading(float h)
   Computer.print("new target is ");
   Computer.println(target);
 */
- 
-
 
   /*
   target=h/360.0*StepsPerDomeTurn;
@@ -505,7 +498,6 @@ int NexDome::SetHeading(float h)
   //Computer.println(CurrentPosition());
   //Computer.println(TargetSteps);
 
-  
   //  now round to even steps, not microsteps
   r=TargetSteps%STEP_TYPE;
   TargetSteps=TargetSteps-r;
@@ -526,7 +518,6 @@ int NexDome::Sync(float val)
   //Computer.println(val);
   return 0;
 }
-
 
 int NexDome::AtHome()
 {
@@ -588,16 +579,12 @@ bool NexDome::isAtHome()
   a=digitalRead(HOME);
   if(a==0) return true;
   return false;
-  
 }
 
 void HomeInterrupt()
 {
   //  lets debounce this just a little
-  int a;
-  int b;
-  a=digitalRead(HOME);
-  //b=digitalRead(HOME);
+  int a=digitalRead(HOME);
   if(SenseRising) {
     if(a==1) HomeSensor=true;
   } else {
@@ -610,6 +597,7 @@ void HomeInterrupt()
     //HomeSensor=true;
   //}
 }
+
 /*
 void OtherInterrupt()
 {
@@ -692,9 +680,7 @@ void setup() {
     //  the dome is at the home sensor now
     if(Dome.HomeAzimuth != 0) Dome.Sync(Dome.HomeAzimuth);
   }
-
 }
-
 
 //  We dont need to check the buttons
 //  on every loop, it adds a lot of overhead
@@ -728,10 +714,9 @@ int CheckButtons()
   buttonstate=buttonstate ^ 0x03;
   //Serial.println(buttonstate);
   return buttonstate;
-  
 }
 
-//  define a buffer and pointers for our serial data state machine
+// define a buffer and pointers for our serial data state machine
 // this definition conflicts with arduino headers in later versions
 // we can just run with what they have defined for now
 #define MY_SERIAL_BUFFER_SIZE 20
@@ -746,7 +731,6 @@ char WirelessBuffer[MY_SERIAL_BUFFER_SIZE];
 int WirelessPointer=0;
 
 //  and some variables used to time out the state machines
-
 unsigned long int LastShutterResponse=0;
 unsigned long int LastShutterKeepAlive=0;
 bool ShutterAlive=false;
@@ -774,7 +758,7 @@ bool FoundXBee=false;
  */
 void ProcessSerialCommand()
 {
-  
+
   char buf[20];
   //  reset our drop dead timer
   LastCommandTime=millis();
@@ -830,7 +814,6 @@ void ProcessSerialCommand()
     return;
   }
 
-  
   /*
    * These commands should not be processed when the dome is in motion
    * 
@@ -986,7 +969,6 @@ void ProcessSerialCommand()
     //Computer.println(" Steps per Dome turn");
     //Computer.println(Dome.HomeAzimuth);
     //Computer.println(" Home Azimuth");
-    
   }
   
 /*  goto based on a heading */
@@ -1137,7 +1119,6 @@ void IncomingSerialChar(char a)
  * Stuff we need for handling communication with the shutter
  * 
  */
- 
 
 void ConfigureWireless()
 {
@@ -1152,10 +1133,8 @@ void ConfigureWireless()
   Wireless.print("+++");
 }
 
-
 void ProcessShutterData()
 {
-
   //Computer.println(WirelessBuffer);
   if(WirelessBuffer[0]=='O') {
     if(WirelessBuffer[1]=='K') {
@@ -1315,7 +1294,6 @@ void ProcessShutterData()
   WirelessPointer=0;
   
   return;
-  
 }
 
 void IncomingWirelessChar(char a)
@@ -1423,8 +1401,6 @@ void loop() {
     IncomingWirelessChar(a);
   }
 
-  //CheckBattery();
-  
   if(Dome.Active)
   {
     //Computer.println("r");
@@ -1447,12 +1423,9 @@ void loop() {
     //  we need to do a keep alive with the shutter
     //  And confirm it's still alive and running
     //  And we should check on battery voltage once in a while too
-    unsigned long int now;
 
-    //CheckBattery();
-    //  time now
+    unsigned long int now;
     now=millis();
-    
     if ((long int)(now - LastShutterKeepAlive) > ShutterQueryTime) {
       CheckBattery();
       if(!FoundXBee) {
@@ -1486,10 +1459,9 @@ void loop() {
         }
       }
     }
-    //  the serial target flag gets sent any time we get a motion
-    //  command from the computer
-    //  and is the default at startup, so if we come up from a power outage
-    //  safeties will kick in
+    
+    // the serial target flag gets sent any time we get a motion command from the computer
+    // and is the default at startup, so if we come up from a power outage safeties will kick in
     if(SerialTarget) {
       //  we are being driven by a computer
       unsigned long int now;
