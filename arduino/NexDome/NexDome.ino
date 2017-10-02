@@ -617,8 +617,11 @@ void OtherInterrupt()
 //  We have defined the class, now lets create one
 NexDome Dome;
 
-
+#ifdef ONCUE_OCS
+void NexDomeSetup() {
+#else
 void setup() {
+#endif
   float MotorTurnsPerDomeTurn;
   float StepsPerGearTurn;
   long int StepsPerDomeTurn;
@@ -758,8 +761,8 @@ bool FoundXBee=false;
  */
 void ProcessSerialCommand()
 {
-
   char buf[20];
+
   //  reset our drop dead timer
   LastCommandTime=millis();
   
@@ -1336,7 +1339,11 @@ int CheckBattery()
   return 0;  
 }
 
+#ifdef ONCUE_OCS
+void NexDomeLoop() {
+#else
 void loop() {
+#endif
   int buttonstate;
 
   if(HomeSensor) {
