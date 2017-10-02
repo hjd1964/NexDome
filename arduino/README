@@ -16,11 +16,12 @@
 
 There are two arduino sketches included in this tree, one contains
 the sources for the dome rotation contoller, and one contains the
-sources for the shutter controller.  The OCS integration of this system is
-based on changes to the dome rotation controller which enable it's use
-within my OCS (simply place the NexDome.ino file within the OCS folder and
-compile.)  If this firmware is placed in it's own directory it will compile
-for stand-alone use.
+sources for the shutter controller.  
+
+[NOTE: The OCS integration of this system is based on changes to the dome
+rotation controller which enable it's use within my OCS (simply place the
+NexDome.ino file within the OCS folder and compile.)  If this firmware is 
+placed in it's own directory it will still compile for stand-alone use.]
 
 Firmware for these controllers was developed using arduino tools
 based on Arduino 1.8.3, and makes extensive use of the AccelStepper
@@ -34,10 +35,11 @@ Download the zip version of the library there an import into the libraries
 of your Arduino tools installation.
 
 The hardware in use is an Arduino Leonardo clone with an xbee socket
-already on the board.  For the OnCue OCS on a Mega2560 you'll need to
-wire the xbee into Serial2.  Also, for the OnCue OCS the PC/USB connection
-is on Serial1 and will need a USB to TTL Serial cable/adapter which are
-readily available.
+already on the board.  
+
+[NOTE: For the OnCue OCS on a Mega2560 you'll need to wire the xbee into Serial2.
+Also, the PC/USB connection for NexDome is on Serial1 and will need a USB to
+TTL Serial cable/adapter which are readily available.]
 
 Refer to the individual firmware files for pin connections.
 
